@@ -13,7 +13,7 @@ const botArgs = {
   host: 'anarquiajogar.aternos.me', 
   port: 62224,
   username: '24horas', 
-  version: '26.1.2' 
+  version: '1.21.11' 
 };
 
 let bot;
