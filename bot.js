@@ -1,44 +1,45 @@
+const http = require('http');
 const mineflayer = require('mineflayer');
 
-// Configurações do seu servidor
-const botOptions = {
-    host: 'enx-cirion-24.enx.host', // Endereço limpo (sem a porta)
-    port: 10016,                     // Porta em linha separada
-    username: 'VoxBot_24h',          // Nome do bot no servidor
-    version: '1.21.1'                // Versão do seu servidor
+// --- 1. SERVIDOR WEB PARA A RENDER (NÃO MEXER AQUI) ---
+const webPort = process.env.PORT || 10000;
+http.createServer((req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
+  res.end('Bot Aura Ativo e Online\n');
+}).listen(webPort, '0.0.0.0', () => {
+  console.log(`[WEB] Servidor de check-in rodando na porta ${webPort}`);
+});
+
+// --- 2. CONFIGURAÇÕES DO BOT DE MINECRAFT ---
+const botArgs = {
+  host: 'enx-cirion-24.enx.host', 
+  port: 10016,                   // <--- PORTA ATUALIZADA AQUI
+  username: 'AuraBot_Vox',       
+  version: '1.21.1'               
 };
 
+let bot;
+
 function createBot() {
-    const bot = mineflayer.createBot(botOptions);
+  console.log('[MINE] Tentando conectar na porta 10016...');
+  bot = mineflayer.createBot(botArgs);
 
-    // Quando o bot logar com sucesso
-    bot.on('login', () => {
-        console.log(`[${new Date().toLocaleTimeString()}] Bot logado com sucesso!`);
-    });
+  bot.on('spawn', () => {
+    console.log('[MINE] Bot entrou no servidor com sucesso!');
+  });
 
-    // Chat log (opcional: para você ver o que acontece no server pelo console)
-    bot.on('chat', (username, message) => {
-        if (username === bot.username) return;
-        console.log(`${username}: ${message}`);
-    });
+  // SISTEMA DE RECONEXÃO
+  bot.on('end', () => {
+    console.log('[MINE] Desconectado. Reconectando em 30 segundos...');
+    setTimeout(createBot, 30000); 
+  });
 
-    // Sistema Anti-AFK (faz o bot pular a cada 5 minutos)
-    setInterval(() => {
-        if (bot.entity) {
-            bot.setControlState('jump', true);
-            setTimeout(() => bot.setControlState('jump', false), 1000);
-        }
-    }, 300000);
-
-    // Reconexão automática em caso de erro ou kick
-    bot.on('end', () => {
-        console.log('Conexão perdida. Tentando reconectar em 30 segundos...');
-        setTimeout(createBot, 30000);
-    });
-
-    bot.on('error', (err) => {
-        console.log('Erro no bot:', err);
-    });
+  bot.on('error', (err) => {
+    console.log(`[ERRO] Erro: ${err.message}`);
+    if (err.code === 'ECONNREFUSED') {
+       console.log('[ERRO] Conexão recusada na porta 10016. Verifique se o IP/Porta estão certos.');
+    }
+  });
 }
 
 createBot();
