@@ -1,31 +1,47 @@
 const http = require('http');
 const mineflayer = require('mineflayer');
 
-// --- 1. SERVIDOR WEB PARA A RENDER (NÃO MEXER AQUI) ---
+// --- 1. SERVIDOR WEB PARA A RENDER ---
 const webPort = process.env.PORT || 10000;
 http.createServer((req, res) => {
   res.writeHead(200, { 'Content-Type': 'text/plain' });
   res.end('Bot Aura Ativo e Online\n');
 }).listen(webPort, '0.0.0.0', () => {
-  console.log(`[WEB] Servidor de check-in rodando na porta ${webPort}`);
+  console.log(`[WEB] Servidor rodando na porta ${webPort}`);
 });
 
-// --- 2. CONFIGURAÇÕES DO BOT DE MINECRAFT ---
+// --- 2. CONFIGURAÇÕES DO BOT ---
 const botArgs = {
   host: 'enx-cirion-24.enx.host', 
-  port: 10016,                   // <--- PORTA ATUALIZADA AQUI
-  username: 'AuraBot_Vox',       
-  version: '1.21.1'               
+  port: 10016,
+  username: 'AuraBot_Vox', 
+  version: '1.21.1' 
 };
 
 let bot;
 
 function createBot() {
-  console.log('[MINE] Tentando conectar na porta 10016...');
+  console.log('[MINE] Conectando...');
   bot = mineflayer.createBot(botArgs);
 
   bot.on('spawn', () => {
-    console.log('[MINE] Bot entrou no servidor com sucesso!');
+    console.log('[MINE] Bot online! Iniciando movimento aleatório básico...');
+    
+    // Inicia o loop de movimento
+    setInterval(() => {
+      // 1. Escolhe uma direção aleatória (gira o bot)
+      const yaw = Math.random() * Math.PI * 2;
+      bot.look(yaw, 0);
+
+      // 2. Faz o bot andar para frente
+      bot.setControlState('forward', true);
+
+      // 3. Depois de 2 segundos, ele para de andar
+      setTimeout(() => {
+        if (bot) bot.setControlState('forward', false);
+      }, 2000);
+
+    }, 10000); // Repete o processo a cada 10 segundos
   });
 
   // SISTEMA DE RECONEXÃO
@@ -34,12 +50,7 @@ function createBot() {
     setTimeout(createBot, 10000); 
   });
 
-  bot.on('error', (err) => {
-    console.log(`[ERRO] Erro: ${err.message}`);
-    if (err.code === 'ECONNREFUSED') {
-       console.log('[ERRO] Conexão recusada na porta 10016. Verifique se o IP/Porta estão certos.');
-    }
-  });
+  bot.on('error', (err) => console.log(`[ERRO]: ${err.message}`));
 }
 
 createBot();
