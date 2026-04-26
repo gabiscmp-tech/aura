@@ -30,8 +30,8 @@ function createBot() {
 
   // SISTEMA DE RECONEXÃO
   bot.on('end', () => {
-    console.log('[MINE] Desconectado. Reconectando em 30 segundos...');
-    setTimeout(createBot, 30000); 
+    console.log('[MINE] Desconectado. Reconectando em 10 segundos...');
+    setTimeout(createBot, 10000); 
   });
 
   bot.on('error', (err) => {
